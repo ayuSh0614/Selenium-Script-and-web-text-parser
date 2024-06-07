@@ -7,6 +7,8 @@ import pandas as pd
 from scores import calculate_score, stop_words, positive_words, negative_words, count_stop_words, count_sentences
 from scores import complexWords, sum_total_characters, count_personal_pronouns, total_syllables_in_text
 import openpyxl
+from selenium.common.exceptions import NoSuchElementException
+
 
 def extract_title_and_text(url):
     # Set up options for headless mode
@@ -19,13 +21,18 @@ def extract_title_and_text(url):
     try:
         # Open the URL
         driver.get(url)
+
+         # Check if page is not found
+        if "404" in driver.title or "Page Not Found" in driver.title:
+            return "NONE", "NONE"
         
         # Extract the title
         title = driver.title
-        
-        # Extract the body text
-        body_text = driver.find_element(By.CLASS_NAME, 'td-post-content').text
-        
+        try:   
+            # Extract the body text
+            body_text = driver.find_element(By.CLASS_NAME, 'td-post-content').text
+        except NoSuchElementException:
+            body_text = "NONE"
         return title, body_text
     finally:
         # Quit the WebDriver
@@ -95,5 +102,6 @@ for index, row in df.iterrows():
 
     
     sheet.append(list(uploder.values()))
+    print(url_id)
 
 wb.save("output.xlsx")
